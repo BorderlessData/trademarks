@@ -14,7 +14,7 @@ BOT_NAME = 'trademarks'
 SPIDER_MODULES = ['trademarks.spiders']
 NEWSPIDER_MODULE = 'trademarks.spiders'
 
-FEED_EXPORT_FIELDS = ['serial', 'owner_name', 'foreign_country', 'mark', 'url', 'owner_address']
+FEED_EXPORT_FIELDS = ['company', 'owner_name', 'mark', 'application_date', 'foreign_country', 'foreign_date', 'url', 'owner_address']
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

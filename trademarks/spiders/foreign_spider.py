@@ -9,7 +9,12 @@ class ForeignSpider(scrapy.Spider):
 
     companies = [
         'amazon',
-        'apple'
+        'apple',
+        'google',
+        'microsoft',
+        'alphabet',
+        'ibm',
+        'intel'
     ]
 
     start_urls = ['http://tess2.uspto.gov/']
@@ -43,7 +48,8 @@ class ForeignSpider(scrapy.Spider):
                     url = 'http://tsdr.uspto.gov/statusview/sn%s' % serial
 
                     callback = scrapy.Request(url, callback=self.parse_tsdr)
-                    callback.meta['serial'] = serial
+                    callback.meta['company'] = company
+                    callback.meta['url'] = href
 
                     yield callback
 
@@ -57,18 +63,20 @@ class ForeignSpider(scrapy.Spider):
 
     def parse_tsdr(self, response):
         data = {
-            'serial': response.meta['serial'],
-            'url': response.url
+            'company': response.meta['company'],
+            'url': response.meta['url']
         }
 
         self.log(response.url)
 
+        data['application_date'] = response.xpath('//*[@id="summary"]/div[3]/div/div[4]/text()').extract_first().strip().replace('.', '')
         data['mark'] = response.xpath('//*[@id="summary"]/div[2]/div/div[2]/text()').extract_first().strip()
         data['owner_name'] = response.xpath('//*[@id="relatedProp-section"]/div[1]/div/div[2]/text()').extract_first().strip()
         data['owner_address'] = ' '.join(map(str.strip, response.xpath('//*[@id="relatedProp-section"]/div[2]/div/div[2]/div/text()').extract())).replace('\r\n', ' ')
 
         foreign_fields = len(response.xpath('//*[@id="markInfo-section"]/div[2]/div'))
 
+        #
         if foreign_fields == 3:
             foreign_country = response.xpath('//*[@id="markInfo-section"]/div[2]/div[3]/div[2]/text()').extract_first()
         else:
@@ -76,5 +84,10 @@ class ForeignSpider(scrapy.Spider):
 
         if foreign_country is not None:
             data['foreign_country'] = foreign_country.strip()
+
+        foreign_date = response.xpath('//*[@id="markInfo-section"]/div[2]/div[1]/div[4]/text()').extract_first()
+
+        if foreign_date is not None:
+            data['foreign_date'] = foreign_date.strip().replace('.', '')
 
         yield data
